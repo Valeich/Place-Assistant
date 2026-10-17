@@ -1,0 +1,10 @@
+# Tested with google-adk 2.3.0 and google-genai 2.10.0 (2026-10-15).
+google-adk>=2.3,<3
+google-genai>=2.10,<3
+fastapi>=0.115        # web UI (run_ui.py)
+uvicorn>=0.30         # web UI server
+python-dotenv>=1.0
+playwright>=1.50      # after installing, also run: playwright install chromium
+requests>=2.32
+beautifulsoup4>=4.12
+python-docx>=1.1

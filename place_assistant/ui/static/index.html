@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Place Assistant</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%230f766e' d='M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#chat">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+      <span>Place Assistant</span>
+    </a>
+    <div class="env" id="env" aria-label="Settings"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="chat" aria-controls="panel-chat">Assistant</button>
+    <button class="tab" role="tab" data-tab="survey" aria-controls="panel-survey">Product survey</button>
+    <button class="tab" role="tab" data-tab="check" aria-controls="panel-check">Outlets &amp; menus</button>
+    <button class="tab" role="tab" data-tab="reports" aria-controls="panel-reports">Reports</button>
+  </nav>
+
+  <main class="main">
+    <!-- Assistant: chat with the root agent -->
+    <section class="panel" id="panel-chat" role="tabpanel" hidden>
+      <div class="card chat">
+        <div class="chat-log" id="chat-log" aria-live="polite">
+          <div class="welcome" id="chat-welcome">
+            <h1>Ask about places, products and menus</h1>
+            <p>The assistant picks the right tool for each question: Google Maps, Google Search, the product survey or the area collector. Answers come from those sources, never from memory.</p>
+            <div class="examples" id="chat-examples"></div>
+          </div>
+        </div>
+        <form class="composer" id="chat-form">
+          <textarea id="chat-input" rows="1" placeholder="Ask a question, e.g. Which restaurants in Menteng sell Aqua?" aria-label="Message"></textarea>
+          <div class="composer-actions">
+            <button type="button" class="btn ghost" id="chat-new" title="Start a new conversation">New chat</button>
+            <button type="button" class="btn danger" id="chat-stop" hidden>Stop</button>
+            <button type="submit" class="btn primary" id="chat-send">Send</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Product survey: one product across an area -->
+    <section class="panel" id="panel-survey" role="tabpanel" hidden>
+      <div class="split">
+        <form class="card form" id="survey-form" novalidate>
+          <div class="form-head">
+            <h2>Product survey</h2>
+            <p>Find out whether a product is sold at an area's restaurants, cafes or bars, and at what price.</p>
+          </div>
+          <div class="notice warn maps-missing" hidden>Surveys need a Maps Platform API key. Set <code>MAPS_API_KEY</code> in <code>.env</code> and restart the UI.</div>
+          <label class="field">
+            <span class="label">Product <em>required</em></span>
+            <input name="product" required placeholder="Aqua" autocomplete="off">
+            <small>The brand as written on menus: "Aqua", not "Aqua mineral water".</small>
+          </label>
+          <label class="field">
+            <span class="label">Other names on menus</span>
+            <input name="aliases" placeholder="Aqua Reflections, Aqua Botol" autocomplete="off">
+            <small>Separate with commas. Skip general words like "mineral water": they match every brand.</small>
+          </label>
+          <label class="field">
+            <span class="label">Product type</span>
+            <input name="description" placeholder="Danone bottled mineral water" autocomplete="off">
+            <small>Helps tell your brand apart from other uses of the same word.</small>
+          </label>
+          <label class="field">
+            <span class="label">Area <em>required</em></span>
+            <input name="area" required placeholder="Menteng, Jakarta, Indonesia" autocomplete="off">
+          </label>
+          <fieldset class="field">
+            <legend class="label">Types of place <small>up to 3</small></legend>
+            <div class="chips" id="survey-types"></div>
+            <input name="custom_type" placeholder="Other type, e.g. indonesian_restaurant" autocomplete="off">
+          </fieldset>
+          <div class="field">
+            <span class="label">Number of places</span>
+            <div class="range-row">
+              <input type="range" name="limit_range" min="1" max="60" value="10" aria-label="Number of places">
+              <input type="number" name="limit" min="1" max="60" value="10" aria-label="Number of places">
+            </div>
+            <small>Up to 60. Each place checked has a cost on your Google Cloud bill.</small>
+          </div>
+          <label class="switch">
+            <input type="checkbox" name="search_third_party" checked>
+            <span class="track" aria-hidden="true"></span>
+            <span>Also check delivery apps and online listings</span>
+          </label>
+          <div class="form-actions">
+            <button class="btn primary" type="submit" data-run>Run survey</button>
+            <button class="btn danger" type="button" data-stop hidden>Stop</button>
+          </div>
+        </form>
+        <div class="results" id="survey-results">
+          <div class="empty">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+            <p>Results appear here: which places show the product, the prices found, and where each one came from.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Outlets & menus: named places -->
+    <section class="panel" id="panel-check" role="tabpanel" hidden>
+      <div class="split">
+        <form class="card form" id="check-form" novalidate>
+          <div class="form-head">
+            <h2>Outlets &amp; menus</h2>
+            <p>Check a list of named places for a product, or read their menus with prices.</p>
+          </div>
+          <div class="notice warn maps-missing" hidden>Checks need a Maps Platform API key. Set <code>MAPS_API_KEY</code> in <code>.env</code> and restart the UI.</div>
+          <div class="segmented" role="radiogroup" aria-label="What to check">
+            <label><input type="radio" name="mode" value="product" checked><span>Product check</span></label>
+            <label><input type="radio" name="mode" value="menu"><span>Menus &amp; prices</span></label>
+          </div>
+          <label class="field">
+            <span class="label">Places <em>required</em></span>
+            <textarea name="places" rows="5" placeholder="Sate Khas Senayan Menteng&#10;Bakmi GM Sarinah"></textarea>
+            <small>One per line, up to 30. Add a street or mall to pin the right branch.</small>
+          </label>
+          <label class="field">
+            <span class="label">Area or city <em>required</em></span>
+            <input name="area" required placeholder="Jakarta, Indonesia" autocomplete="off">
+          </label>
+          <div class="product-fields">
+            <label class="field">
+              <span class="label">Product <em>required</em></span>
+              <input name="product" placeholder="Aqua" autocomplete="off">
+            </label>
+            <label class="field">
+              <span class="label">Other names on menus</span>
+              <input name="aliases" placeholder="Aqua Reflections, Aqua Botol" autocomplete="off">
+            </label>
+            <label class="field">
+              <span class="label">Product type</span>
+              <input name="description" placeholder="Danone bottled mineral water" autocomplete="off">
+            </label>
+          </div>
+          <label class="switch">
+            <input type="checkbox" name="search_third_party" checked>
+            <span class="track" aria-hidden="true"></span>
+            <span>Also check delivery apps and online listings</span>
+          </label>
+          <div class="form-actions">
+            <button class="btn primary" type="submit" data-run>Check places</button>
+            <button class="btn danger" type="button" data-stop hidden>Stop</button>
+          </div>
+        </form>
+        <div class="results" id="check-results">
+          <div class="empty">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+            <p>Each place is matched on Google Maps first. The matched name and address are shown, so a wrong branch is easy to spot.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reports: everything in the output folder -->
+    <section class="panel" id="panel-reports" role="tabpanel" hidden>
+      <div class="reports-head">
+        <div>
+          <h2>Reports</h2>
+          <p class="muted" id="reports-dir"></p>
+        </div>
+        <button class="btn ghost" id="reports-refresh" type="button">Refresh</button>
+      </div>
+      <div id="reports-list" class="reports-list"></div>
+      <div id="report-view" class="report-view" hidden></div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# secrets: environment files and credentials (keep the template)
+.env
+.env.*
+.venv/
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
+client_secret*.json
+
+# local environment and caches
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store
+.claude/settings.local.json
+
+# runtime data: collection results, adk web chat sessions, local backups
+.output/
+.adk/
+.backup/
+
+.claude/
+.venv/
+.venv/

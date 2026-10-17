@@ -1,0 +1,20 @@
+# Never send secrets, local environments or local data to a build.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
+client_secret*.json
+.git/
+.githooks/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store
+.claude/
+.output/
+.adk/
+.backup/
