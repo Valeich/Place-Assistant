@@ -222,5 +222,3 @@ Keep every new folder inside `place_assistant/`, or give it a dot-prefixed name.
 - **A product survey finds online evidence, not distribution.** "No evidence" means nothing readable online mentions the product, not that the place doesn't sell it. Confirm key outlets in person.
 - **Website fetching is restricted.** Fetchers respect robots.txt, identify themselves, and refuse Google, Bing, social-network and delivery-app pages, also when a link redirects there. Menus kept there are reported as links instead.
 - **Search Suggestions must be displayed** in any end-user product built on `web_search`, per Google's grounding terms.
-
-The reasoning behind ruling out the Google Business Profile API is in [GOOGLE_BUSINESS_PROFILE_API_FINDINGS.md](GOOGLE_BUSINESS_PROFILE_API_FINDINGS.md).
